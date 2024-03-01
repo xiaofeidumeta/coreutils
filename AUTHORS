@@ -51,6 +51,7 @@ mkdir: David MacKenzie
 mkfifo: David MacKenzie
 mknod: David MacKenzie
 mktemp: Jim Meyering, Eric Blake
+mu: Xiaofei Du
 mv: Mike Parker, David MacKenzie, Jim Meyering
 nice: David MacKenzie
 nl: Scott Bartram, David MacKenzie

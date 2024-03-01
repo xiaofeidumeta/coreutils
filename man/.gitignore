@@ -47,6 +47,7 @@ mkdir.1
 mkfifo.1
 mknod.1
 mktemp.1
+mu.1
 mv.1
 nice.1
 nl.1

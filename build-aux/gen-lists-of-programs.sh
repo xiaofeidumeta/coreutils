@@ -62,6 +62,7 @@ normal_progs='
     dircolors
     dirname
     du
+    mu
     echo
     env
     expand

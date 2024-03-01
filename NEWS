@@ -2,6 +2,10 @@ GNU coreutils NEWS                                    -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+** New commands
+
+  mu: a new tool to show memory usage of files
+
 ** Bug fixes
 
   cp, mv, and install no longer issue spurious diagnostics like "failed

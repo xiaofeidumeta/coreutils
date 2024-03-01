@@ -87,6 +87,7 @@
 * mkfifo: (coreutils)mkfifo invocation.         Create FIFOs (named pipes).
 * mknod: (coreutils)mknod invocation.           Create special files.
 * mktemp: (coreutils)mktemp invocation.         Create temporary files.
+* mu: (coreutils)mu invocation.                 Report file memory usage.
 * mv: (coreutils)mv invocation.                 Rename files.
 * nice: (coreutils)nice invocation.             Modify niceness.
 * nl: (coreutils)nl invocation.                 Number lines and write files.
@@ -199,6 +200,7 @@ Free Documentation License''.
 * Special file types::         mkdir rmdir unlink mkfifo mknod ln link readlink
 * Changing file attributes::     chgrp chmod chown touch
 * File space usage::             df du stat sync truncate
+* File memory usage::            mu
 * Printing text::                echo printf yes
 * Conditions::                   false true test expr
 * Redirection::                  tee
@@ -351,10 +353,13 @@ Changing file attributes
 File space usage
 
 * df invocation::                Report file system space usage
-* du invocation::                Estimate file space usage
-* stat invocation::              Report file or file system status
+* du invocation::                Estimate file space usage * stat invocation::              Report file or file system status
 * sync invocation::              Synchronize cached writes to persistent storage
 * truncate invocation::          Shrink or extend the size of a file
+
+File memory usage
+
+* mu invocation::                Report file memory usage
 
 Printing text
 
@@ -13203,6 +13208,299 @@ the size of each @var{file} based on its current size:
 @samp{/}  => round down to multiple of
 @samp{%}  => round up to multiple of
 @end example
+
+@end table
+
+@exitstatus
+
+
+@node File memory usage
+@chapter File memory usage
+
+@cindex File memory usage
+@cindex memory usage
+
+These commands report how much memory files use
+
+@menu
+* mu invocation::               Report file memory usage
+@end menu
+
+
+@node mu invocation
+@section @command{mu}: Report file memory usage
+
+@pindex mu
+@cindex file memory usage
+@cindex memory usage for files
+
+@command{mu} reports the memory used for a set of files.
+Synopsis:
+
+@example
+mu [@var{option}]@dots{} [@var{file}]@dots{}
+@end example
+
+With no arguments, @command{mu} reports the memory used by the
+files at or under the current directory.
+Normally the memory is printed in units of
+1024 bytes, but this can be overridden (@pxref{Block size}).
+Non-integer quantities are rounded up to the next higher unit.
+
+If two or more hard links point to the same file, only one of the hard
+links is counted.  The @var{file} argument order affects which links
+are counted, and changing the argument order may change the numbers
+and entries that @command{mu} outputs.
+
+The program accepts the following options.  Also see @ref{Common options}.
+
+@table @samp
+
+@optNull
+
+@item -a
+@itemx --all
+@opindex -a
+@opindex --all
+Show counts for all files, not just directories.
+
+@item -B @var{size}
+@itemx --block-size=@var{size}
+@opindex -B
+@opindex --block-size
+@cindex memory sizes
+Scale sizes by @var{size} before printing them (@pxref{Block size}).
+For example, @option{-BG} prints sizes in units of 1,073,741,824 bytes.
+
+@item -b
+@itemx --bytes
+@opindex -b
+@opindex --bytes
+Equivalent to @code{--block-size=1}.
+
+@item -c
+@itemx --total
+@opindex -c
+@opindex --total
+@cindex grand total of file memory usage
+Print a grand total of all arguments after all arguments have
+been processed.  This can be used to find out the total file memory usage of
+a given set of files or directories.
+
+@item -D
+@itemx --dereference-args
+@opindex -D
+@opindex --dereference-args
+Dereference symbolic links that are command line arguments.
+Does not affect other symbolic links.  This is helpful for finding
+out the file memory usage of directories, such as @file{/usr/tmp}, which
+are often symbolic links.
+
+@item -d @var{depth}
+@itemx --max-depth=@var{depth}
+@opindex -d @var{depth}
+@opindex --max-depth=@var{depth}
+@cindex limiting output of @command{mu}
+Show the total for each directory (and file if @option{--all}) that is at
+most MAX_DEPTH levels down from the root of the hierarchy.  The root
+is at level 0, so @code{mu --max-depth=0} is equivalent to @code{mu -s}.
+
+@c --files0-from=FILE
+@filesZeroFromOption{mu,, with the @option{--total} (@option{-c}) option}
+
+@item -f
+@itemx --format=@var{format}
+@opindex -f
+@opindex --format=@var{format}
+@cindex use specified FORMAT for output instead of the default
+FORMAT is automatically newline-terminated, so running a command like the
+following with two or more FILE operands produces a line of output for
+each operand:
+
+@example
+$ mu -f '%c %d' file_a file_b
+4 0    file_a
+8 0    file_b
+@end example
+
+The valid @var{format} directives for memory usage with @option{--format} are:
+
+@itemize @bullet
+@item %c -- memory cached in the page cache
+@item %d -- dirty memory (have been modified and not yet written back
+            to persistent storage)
+@item %w -- memory currently being written back
+@item %e -- memory were once resident in the cache but has since been forced out
+@item %r -- memory that has been forced out in the recent past. In this case, the
+            'recent past' is defined by the memory that has been evicted since
+            the memory in question was forced out
+@end itemize
+
+@item -H
+@opindex -H
+Equivalent to @option{--dereference-args} (@option{-D}).
+
+@optHumanReadable
+
+@item -k
+@opindex -k
+@cindex kibibytes for memory sizes
+Print sizes in 1024-byte blocks, overriding the default block size
+(@pxref{Block size}).
+This option is equivalent to @option{--block-size=1K}.
+
+@item -L
+@itemx --dereference
+@opindex -L
+@opindex --dereference
+@cindex symbolic links, dereferencing in @command{mu}
+Dereference symbolic links (show the file memory space used by the file
+or directory that the link points to instead of the memory used by
+the link).
+
+@item -l
+@itemx --count-links
+@opindex -l
+@opindex --count-links
+@cindex hard links, counting in @command{mu}
+Count the size of all files, even if they have appeared already (as a
+hard link).
+
+@item -m
+@opindex -m
+@cindex megabytes for memory sizes
+Print sizes in 1,048,576-byte blocks, overriding the default block size
+(@pxref{Block size}).
+This option is equivalent to @option{--block-size=1M}.
+
+@item -P
+@itemx --no-dereference
+@opindex -P
+@opindex --no-dereference
+@cindex symbolic links, dereferencing in @command{mu}
+For each symbolic link encountered by @command{mu},
+consider the file memory used by the symbolic link itself.
+
+@item -S
+@itemx --separate-dirs
+@opindex -S
+@opindex --separate-dirs
+Normally, in the output of @command{mu} (when not using @option{--summarize}),
+the size listed next to a directory name, @var{d}, represents the sum
+of sizes of all entries beneath @var{d} as well as the size of @var{d} itself.
+With @option{--separate-dirs}, the size reported for a directory name,
+@var{d}, will exclude the size of any subdirectories.
+
+@optSi
+
+@item -s
+@itemx --summarize
+@opindex -s
+@opindex --summarize
+Display only a total for each argument.
+
+@item -t @var{size}
+@itemx --threshold=@var{size}
+@opindex -t
+@opindex --threshold
+Exclude entries based on a given @var{size}.
+
+If @var{size} is positive, then @command{mu} will only print entries with a size
+greater than or equal to that.
+
+If @var{size} is negative, then @command{mu} will only print entries with a size
+smaller than or equal to that.
+
+@item --time
+@opindex --time
+@cindex last modified dates, displaying in @command{mu}
+Show the most recent modification timestamp (mtime) of any file in the
+directory, or any of its subdirectories.  @xref{File timestamps}.
+
+@item --time=ctime
+@itemx --time=status
+@itemx --time=use
+@opindex --time
+@opindex ctime@r{, show the most recent}
+@opindex status time@r{, show the most recent}
+@opindex use time@r{, show the most recent}
+Show the most recent status change timestamp (ctime) of any file in
+the directory, or any of its subdirectories.  @xref{File timestamps}.
+
+@item --time=atime
+@itemx --time=access
+@opindex --time
+@opindex atime@r{, show the most recent}
+@opindex access timestamp@r{, show the most recent}
+Show the most recent access timestamp (atime) of any file in the
+directory, or any of its subdirectories.  @xref{File timestamps}.
+
+@item --time-style=@var{style}
+@opindex --time-style
+@cindex time style
+List timestamps in style @var{style}.  This option has an effect only if
+the @option{--time} option is also specified.  The @var{style} should
+be one of the following:
+
+@table @samp
+@item +@var{format}
+@vindex LC_TIME
+List timestamps using @var{format}, where @var{format} is interpreted
+like the format argument of @command{date} (@pxref{date invocation}).
+For example, @option{--time-style="+%Y-%m-%d %H:%M:%S"} causes
+@command{du} to list timestamps like @samp{2020-07-21 23:45:56}.  As
+with @command{date}, @var{format}'s interpretation is affected by the
+@env{LC_TIME} locale category.
+
+@item full-iso
+List timestamps in full using ISO 8601-like date, time, and time zone
+components with nanosecond precision, e.g., @samp{2020-07-21
+23:45:56.477817180 -0400}.  This style is equivalent to
+@samp{+%Y-%m-%d %H:%M:%S.%N %z}.
+
+@item long-iso
+List ISO 8601 date and time components with minute precision, e.g.,
+@samp{2020-07-21 23:45}.  These timestamps are shorter than
+@samp{full-iso} timestamps, and are usually good enough for everyday
+work.  This style is equivalent to @samp{+%Y-%m-%d %H:%M}.
+
+@item iso
+List ISO 8601 dates for timestamps, e.g., @samp{2020-07-21}.
+This style is equivalent to @samp{+%Y-%m-%d}.
+@end table
+
+@vindex TIME_STYLE
+You can specify the default value of the @option{--time-style} option
+with the environment variable @env{TIME_STYLE}; if @env{TIME_STYLE} is not set
+the default style is @samp{long-iso}.  For compatibility with @command{ls},
+if @env{TIME_STYLE} begins with @samp{+} and contains a newline,
+the newline and any later characters are ignored; if @env{TIME_STYLE}
+begins with @samp{posix-} the @samp{posix-} is ignored; and if
+@env{TIME_STYLE} is @samp{locale} it is ignored.
+
+@item -X @var{file}
+@itemx --exclude-from=@var{file}
+@opindex -X @var{file}
+@opindex --exclude-from=@var{file}
+@cindex excluding files from @command{mu}
+Like @option{--exclude}, except take the patterns to exclude from @var{file},
+one per line.  If @var{file} is @samp{-}, take the patterns from standard
+input.
+
+@item --exclude=@var{pattern}
+@opindex --exclude=@var{pattern}
+@cindex excluding files from @command{mu}
+When recursing, skip subdirectories or files matching @var{pattern}.
+For example, @code{mu --exclude='*.o'} excludes files whose names
+end in @samp{.o}.
+
+@item -x
+@itemx --one-file-system
+@opindex -x
+@opindex --one-file-system
+@cindex one file system, restricting @command{mu} to
+Skip directories that are on different file systems from the one that
+the argument being processed is on.
 
 @end table
 

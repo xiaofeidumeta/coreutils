@@ -57,6 +57,7 @@ mkdir
 mkfifo
 mknod
 mktemp
+mu
 mv
 nice
 nl
